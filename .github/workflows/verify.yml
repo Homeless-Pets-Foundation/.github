@@ -1,0 +1,31 @@
+name: Verify
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  merge_group:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Check changed-file whitespace
+        run: git diff --check HEAD^ HEAD
+      - name: Check profile text
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          profile = Path('profile/README.md').read_text(encoding='utf-8')
+          assert profile.strip(), 'The organization profile must not be empty'
+          PY
